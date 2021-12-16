@@ -11,8 +11,10 @@ class App extends Component {
     filter: "",
   };
 
+  #localstorageKey = "contacts";
+
   componentDidMount() {
-    const contacts = localStorage.getItem("contacts");
+    const contacts = localStorage.getItem(this.#localstorageKey);
     const parsedContacts = JSON.parse(contacts);
     if (parsedContacts) {
       this.setState({ contacts: parsedContacts });
@@ -21,15 +23,17 @@ class App extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem("contacts", JSON.stringify(this.state.contacts));
+      localStorage.setItem(
+        this.#localstorageKey,
+        JSON.stringify(this.state.contacts)
+      );
     }
   }
 
   addNewContact = (name, number) => {
-    const contactName = { name, number, id: shortid.generate() };
     const normalizedName = name.toLowerCase();
     const duplicateName = this.state.contacts.find(
-      (contact) => contact.name.toLowerCase() === normalizedName
+      ({ name }) => name.toLowerCase() === normalizedName
     );
 
     if (duplicateName) {
@@ -39,6 +43,8 @@ class App extends Component {
     if (name === "") {
       alert(`Please type your info in the field. It is empty.`);
     } else {
+      const contactName = { name, number, id: shortid.generate() };
+
       this.setState(({ contacts }) => ({
         contacts: [...contacts, contactName],
       }));
@@ -67,19 +73,15 @@ class App extends Component {
   render() {
     const { filter } = this.state;
     const filteredContacts = this.filterContacts();
+
     return (
-      <>
-        <div className={s.container}>
-          <h1 className={s.title}>Phonebook</h1>
-          <ContactForm onSubmit={this.addNewContact} />
-          <h2 className={s.title}>Contacts</h2>
-          <Filter filter={filter} onChange={this.updateFilter} />
-          <ContactList
-            contacts={filteredContacts}
-            onClick={this.deleteContact}
-          />
-        </div>
-      </>
+      <div className={s.container}>
+        <h1 className={s.title}>Phonebook</h1>
+        <ContactForm onSubmit={this.addNewContact} />
+        <h2 className={s.title}>Contacts</h2>
+        <Filter filter={filter} onChange={this.updateFilter} />
+        <ContactList contacts={filteredContacts} onClick={this.deleteContact} />
+      </div>
     );
   }
 }
